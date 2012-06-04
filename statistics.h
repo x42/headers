@@ -22,7 +22,8 @@
 #define __statistics_h__
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <jack/types.h>
