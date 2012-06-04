@@ -46,10 +46,29 @@
    the symbol it used with. For this to work full may
    require linker arguments in the client as well.
 */
-#define JACK_WEAK_EXPORT __attribute__((WEAK_ATTRIBUTE))
+
+#ifdef WIN32
+    /*
+        Not working with __declspec(dllexport) so normal linking
+        Linking with JackWeakAPI.cpp will be the preferred way.
+    */
+    #define JACK_WEAK_EXPORT
+#else
+    #define JACK_WEAK_EXPORT __attribute__((WEAK_ATTRIBUTE))
+#endif
+
 #else
 /* Add other things here for non-gcc platforms */
+
+#ifdef WIN32
+#define JACK_WEAK_EXPORT
 #endif
+
+#endif
+#endif
+
+#ifndef JACK_WEAK_EXPORT
+#define JACK_WEAK_EXPORT
 #endif
 
 #ifndef JACK_OPTIONAL_WEAK_EXPORT
@@ -61,7 +80,17 @@
 #define JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT __attribute__((__deprecated__))
 #else
 /* Add other things here for non-gcc platforms */
+
+#ifdef WIN32
+#define JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT
+#endif
+
 #endif /* __GNUC__ */
+
+#ifndef JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT
+#define JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT
+#endif
+
 #endif
 
 #endif /* __weakmacros_h__ */

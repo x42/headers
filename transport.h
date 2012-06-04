@@ -28,21 +28,6 @@ extern "C" {
 #include <jack/types.h>
 #include <jack/weakmacros.h>
 
-#ifndef POST_PACKED_STRUCTURE
-#ifdef __GNUC__
-/* POST_PACKED_STRUCTURE needs to be a macro which
-   expands into a compiler directive. The directive must
-   tell the compiler to arrange the preceding structure
-   declaration so that it is packed on byte-boundaries rather
-   than use the natural alignment of the processor and/or
-   compiler.
-*/
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-#else
-/* Add other things here for non-gcc platforms */
-#endif
-#endif
-
 /**
  * @defgroup TransportControl Transport and Timebase control
  * @{
@@ -67,7 +52,7 @@ extern "C" {
 int  jack_release_timebase (jack_client_t *client) JACK_OPTIONAL_WEAK_EXPORT;
 
 /**
- * Register (or unregister) as a @ref slowsyncclients "slow-sync client", that cannot
+ * Register (or unregister) as a slow-sync client, one that cannot
  * respond immediately to transport position changes.
  *
  * The @a sync_callback will be invoked at the first available
@@ -91,7 +76,7 @@ int  jack_set_sync_callback (jack_client_t *client,
 			     void *arg) JACK_OPTIONAL_WEAK_EXPORT;
 
 /**
- * Set the timeout value for @ref slowsyncclients "slow-sync clients".
+ * Set the timeout value for slow-sync clients.
  *
  * This timeout prevents unresponsive slow-sync clients from
  * completely halting the transport mechanism.  The default is two
@@ -123,8 +108,6 @@ int  jack_set_sync_timeout (jack_client_t *client,
  * Taking over the timebase may be done conditionally, so it fails if
  * there was a master already.
  *
- * The method may be called whether the client has been activated or not.
- *
  * @param client the JACK client structure.
  * @param conditional non-zero for a conditional request.
  * @param timebase_callback is a realtime function that returns
@@ -146,9 +129,9 @@ int  jack_set_timebase_callback (jack_client_t *client,
  * Reposition the transport to a new frame number.
  *
  * May be called at any time by any client.  The new position takes
- * effect in two process cycles.  If there are @ref slowsyncclients
- * "slow-sync clients" and the transport is already rolling, it will
- * enter the ::JackTransportStarting state and begin invoking their @a
+ * effect in two process cycles.  If there are slow-sync clients and
+ * the transport is already rolling, it will enter the
+ * ::JackTransportStarting state and begin invoking their @a
  * sync_callbacks until ready.  This function is realtime-safe.
  *
  * @see jack_transport_reposition, jack_set_sync_callback
@@ -192,17 +175,15 @@ jack_nframes_t jack_get_current_transport_frame (const jack_client_t *client) JA
  * Request a new transport position.
  *
  * May be called at any time by any client.  The new position takes
- * effect in two process cycles.  If there are @ref slowsyncclients
- * "slow-sync clients" and the transport is already rolling, it will
- * enter the ::JackTransportStarting state and begin invoking their @a
+ * effect in two process cycles.  If there are slow-sync clients and
+ * the transport is already rolling, it will enter the
+ * ::JackTransportStarting state and begin invoking their @a
  * sync_callbacks until ready.  This function is realtime-safe.
  *
  * @see jack_transport_locate, jack_set_sync_callback
  *
  * @param client the JACK client structure.
- * @param pos requested new transport position. Fill pos->valid to specify
- *   which fields should be taken into account. If you mark a set of fields
- *   as valid, you are expected to fill them all.
+ * @param pos requested new transport position.
  *
  * @return 0 if valid request, EINVAL if position structure rejected.
  */
@@ -214,7 +195,7 @@ int  jack_transport_reposition (jack_client_t *client,
  *
  * Any client can make this request at any time.  It takes effect no
  * sooner than the next process cycle, perhaps later if there are
- * @ref slowsyncclients "slow-sync clients".  This function is realtime-safe.
+ * slow-sync clients.  This function is realtime-safe.
  *
  * @see jack_set_sync_callback
  *
@@ -245,7 +226,7 @@ void jack_transport_stop (jack_client_t *client) JACK_OPTIONAL_WEAK_EXPORT;
  * @pre Must be called from the process thread.
  */
 void jack_get_transport_info (jack_client_t *client,
-			      jack_transport_info_t *tinfo) JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT;
+			      jack_transport_info_t *tinfo) JACK_OPTIONAL_WEAK_EXPORT;
 
 /**
  * Set the transport info structure (deprecated).
@@ -255,7 +236,7 @@ void jack_get_transport_info (jack_client_t *client,
  * a ::JackTimebaseCallback.
  */
 void jack_set_transport_info (jack_client_t *client,
-			      jack_transport_info_t *tinfo) JACK_OPTIONAL_WEAK_DEPRECATED_EXPORT;
+			      jack_transport_info_t *tinfo) JACK_OPTIONAL_WEAK_EXPORT;
 
 /*@}*/
 

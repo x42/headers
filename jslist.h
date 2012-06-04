@@ -3,7 +3,7 @@
 
   Adaption to JACK, Copyright (C) 2002 Kai Vehmanen.
     - replaced use of gtypes with normal ANSI C types
-    - glib's memery allocation routines replaced with
+    - glib's memory allocation routines replaced with
       malloc/free calls
 
   This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,11 @@
 #define __jack_jslist_h__
 
 #include <stdlib.h>
+#include <jack/systemdeps.h>
+
+#ifdef sun
+#define __inline__
+#endif
 
 typedef struct _JSList JSList;
 
@@ -42,9 +47,12 @@ jack_slist_alloc (void)
 {
 	JSList *new_list;
 
-	new_list = malloc(sizeof(JSList));
-	new_list->data = NULL;
-	new_list->next = NULL;
+	new_list = (JSList*)malloc(sizeof(JSList));
+	if (new_list)
+	{
+		new_list->data = NULL;
+		new_list->next = NULL;
+	}
 
 	return new_list;
 }
@@ -55,9 +63,11 @@ jack_slist_prepend (JSList* list, void* data)
 {
 	JSList *new_list;
 
-	new_list = malloc(sizeof(JSList));
-	new_list->data = data;
-	new_list->next = list;
+	new_list = (JSList*)malloc(sizeof(JSList));
+	if (new_list) {
+		new_list->data = data;
+		new_list->next = list;
+	}
 
 	return new_list;
 }

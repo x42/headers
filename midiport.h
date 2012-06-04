@@ -53,7 +53,7 @@ typedef struct _jack_midi_event
  * @param port_buffer Port buffer from which to retrieve event.
  * @return number of events inside @a port_buffer
  */
-jack_nframes_t
+uint32_t
 jack_midi_get_event_count(void* port_buffer) JACK_OPTIONAL_WEAK_EXPORT;
 
 

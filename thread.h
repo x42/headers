@@ -25,9 +25,8 @@ extern "C"
 {
 #endif
 
-#include <pthread.h>
+#include <jack/systemdeps.h>
 #include <jack/weakmacros.h>
-#include <jack/types.h>
 
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
@@ -105,10 +104,30 @@ int jack_client_create_thread (jack_client_t* client,
  */
 int jack_drop_real_time_scheduling (jack_native_thread_t thread) JACK_OPTIONAL_WEAK_EXPORT;
 
-typedef int (*jack_thread_creator_t)(jack_native_thread_t*,
+/**
+ * Stop the thread, waiting for the thread handler to terminate.
+ *
+ * @param thread POSIX thread ID.
+ *
+ * @returns 0, if successful; otherwise an error number.
+ */
+int jack_client_stop_thread(jack_client_t* client, jack_native_thread_t thread) JACK_OPTIONAL_WEAK_EXPORT;
+
+/**
+ * Kill the thread.
+ *
+ * @param thread POSIX thread ID.
+ *
+ * @returns 0, if successful; otherwise an error number.
+ */
+int jack_client_kill_thread(jack_client_t* client, jack_native_thread_t thread) JACK_OPTIONAL_WEAK_EXPORT;
+
+#ifndef WIN32
+
+typedef int (*jack_thread_creator_t)(pthread_t*,
 				     const pthread_attr_t*,
 				     void* (*function)(void*),
-				     void* arg) JACK_OPTIONAL_WEAK_EXPORT;
+				     void* arg);
 /**
  * This function can be used in very very specialized cases
  * where it is necessary that client threads created by JACK
@@ -123,10 +142,14 @@ typedef int (*jack_thread_creator_t)(jack_native_thread_t*,
  * that all threads that might call win32 functions are known
  * to Wine.
  *
+ * Set it to NULL to restore thread creation function.
+ *
  * @param creator a function that creates a new thread
  *
  */
 void jack_set_thread_creator (jack_thread_creator_t creator) JACK_OPTIONAL_WEAK_EXPORT;
+
+#endif
 
 /* @} */
 

@@ -29,9 +29,10 @@
 #ifndef JACKCTL_H__2EEDAD78_DF4C_4B26_83B7_4FF1A446A47E__INCLUDED
 #define JACKCTL_H__2EEDAD78_DF4C_4B26_83B7_4FF1A446A47E__INCLUDED
 
+#include <jack/types.h>
 #include <jack/jslist.h>
-
-#if !defined (__sun__)
+#include <jack/systemdeps.h>
+#if !defined(sun) && !defined(__sun__)
 #include <stdbool.h>
 #endif
 
@@ -44,6 +45,13 @@ typedef enum
     JackParamString,			/**< @brief value type is a string with max size of ::JACK_PARAM_STRING_MAX+1 chars */
     JackParamBool,				/**< @brief value type is a boolean */
 } jackctl_param_type_t;
+
+/** Driver types */
+typedef enum
+{
+    JackMaster = 1,         /**< @brief master driver */
+    JackSlave               /**< @brief slave driver */
+} jackctl_driver_type_t;
 
 /** @brief Max value that jackctl_param_type_t type can have */
 #define JACK_PARAM_MAX (JackParamBool + 1)
@@ -74,6 +82,9 @@ typedef struct jackctl_internal jackctl_internal_t;
 /** opaque type for parameter object */
 typedef struct jackctl_parameter jackctl_parameter_t;
 
+/** opaque type for sigmask object */
+typedef struct jackctl_sigmask jackctl_sigmask_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -95,7 +106,7 @@ extern "C" {
  *
  * @return the configurated signal set.
  */
-sigset_t
+jackctl_sigmask_t *
 jackctl_setup_signals(
     unsigned int flags);
 
@@ -106,7 +117,7 @@ jackctl_setup_signals(
  */
 void
 jackctl_wait_signals(
-    sigset_t signals);
+    jackctl_sigmask_t * signals);
 
 /**
  * Call this function to create server object.
@@ -136,12 +147,23 @@ jackctl_server_destroy(
  * Call this function to start JACK server
  *
  * @param server server object handle
- * @param driver driver to use
  *
  * @return success status: true - success, false - fail
  */
 bool
 jackctl_server_start(
+    jackctl_server_t * server);
+
+/**
+ * Call this function to open JACK server
+ *
+ * @param server server object handle
+ * @param driver driver to use
+ *
+ * @return success status: true - success, false - fail
+ */
+bool
+jackctl_server_open(
     jackctl_server_t * server,
     jackctl_driver_t * driver);
 
@@ -154,6 +176,17 @@ jackctl_server_start(
  */
 bool
 jackctl_server_stop(
+	jackctl_server_t * server);
+
+/**
+ * Call this function to close JACK server
+ *
+ * @param server server object handle
+ *
+ * @return success status: true - success, false - fail
+ */
+bool
+jackctl_server_close(
 	jackctl_server_t * server);
 
 /**
@@ -197,6 +230,7 @@ jackctl_server_get_internals_list(
 
 /**
  * Call this function to load one internal client.
+ * (can be used when the server is running)
  *
  * @param server server object handle
  * @param internal internal to use
@@ -210,6 +244,7 @@ jackctl_server_load_internal(
 
 /**
  * Call this function to unload one internal client.
+ * (can be used when the server is running)
  *
  * @param server server object handle
  * @param internal internal to unload
@@ -223,6 +258,8 @@ jackctl_server_unload_internal(
 
 /**
  * Call this function to add a slave in the driver slave list.
+ * (cannot be used when the server is running that is between
+ * jackctl_server_start and jackctl_server_stop)
  *
  * @param server server object handle
  * @param driver driver to add in the driver slave list.
@@ -235,6 +272,8 @@ jackctl_server_add_slave(jackctl_server_t * server,
 
 /**
  * Call this function to remove a slave from the driver slave list.
+ * (cannot be used when the server is running that is between
+ * jackctl_server_start and jackctl_server_stop)
  *
  * @param server server object handle
  * @param driver driver to remove from the driver slave list.
@@ -271,6 +310,18 @@ jackctl_driver_get_name(
 	jackctl_driver_t * driver);
 
 /**
+ * Call this function to get type of driver.
+ *
+ * @param driver driver object handle to get name of
+ *
+ * @return driver type. Must not be modified. Always same for same
+ * driver object.
+ */
+jackctl_driver_type_t
+jackctl_driver_get_type(
+	jackctl_driver_t * driver);
+
+/**
  * Call this function to get list of driver parameters. List node data
  * pointers is a parameter object handle (::jackctl_parameter_t).
  *
@@ -282,6 +333,21 @@ jackctl_driver_get_name(
 const JSList *
 jackctl_driver_get_parameters(
 	jackctl_driver_t * driver);
+
+/**
+ * Call this function to parse parameters for a driver.
+ *
+ * @param driver driver object handle
+ * @param argc parameter list len
+ * @param argv parameter list, as an array of char*
+ *
+ * @return success status: true - success, false - fail
+ */
+int
+jackctl_driver_params_parse(
+    jackctl_driver_t * driver,
+    int argc,
+    char* argv[]);
 
 /**
  * Call this function to get name of internal client.
